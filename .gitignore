@@ -2,8 +2,9 @@
 ### Example user template
 
 # IntelliJ project files
+**/target/
 .idea
 *.iml
 *.class
-out
-gen
+*Test.java
+**/test/
