@@ -7,9 +7,13 @@ import com.crimson.reggie.dto.DishDto;
 import com.crimson.reggie.entity.Category;
 import com.crimson.reggie.entity.Dish;
 import com.crimson.reggie.entity.DishFlavor;
+import com.crimson.reggie.entity.SetmealDish;
+import com.crimson.reggie.mapper.SetmealDishMapper;
+import com.crimson.reggie.mapper.SetmealMapper;
 import com.crimson.reggie.service.CategoryService;
 import com.crimson.reggie.service.DishFlavorService;
 import com.crimson.reggie.service.DishService;
+import com.crimson.reggie.service.SetmealDishService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -30,6 +34,9 @@ public class DishController {
     private DishFlavorService dishFlavorService;
     @Autowired
     private CategoryService categoryService;
+    @Autowired
+    private SetmealDishService setmealDishService;
+
 
     /**
      * 新增菜品
@@ -132,5 +139,28 @@ public class DishController {
         queryWrapper.eq(Dish::getStatus,1);
         List<Dish> list = dishService.list(queryWrapper);
         return R.success(list);
+    }
+
+    /**
+     * 批量起售禁售菜品
+     * @param status
+     * @param ids
+     * @return
+     */
+    @PostMapping("/status/{status}")
+    public R<String> status(@PathVariable int status,@RequestParam List<Long> ids){
+        log.info("status:{},ids:{}",status,ids);
+
+        Dish dish = new Dish();
+        dish.setStatus(status);
+
+        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(Dish::getId,ids);
+        queryWrapper.notInSql(Dish::getId, "SELECT dish_id FROM setmeal_dish");
+
+        dishService.update(dish,queryWrapper);
+
+        return R.success("起售禁售菜品成功");
+
     }
 }
